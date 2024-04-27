@@ -180,6 +180,13 @@ data "aws_iam_policy_document" "minimum_required_deploy_permissions" {
   }
 
   statement {
+    sid       = "DescribeTaskDefinition"
+    effect    = "Allow"
+    actions   = ["ecs:DescribeTaskDefinition"]
+    resources = ["*"]
+  }
+
+  statement {
     sid       = "PassRolesInTaskDefinition"
     effect    = "Allow"
     actions   = ["iam:PassRole"]
