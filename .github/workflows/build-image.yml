@@ -13,6 +13,7 @@ jobs:
 
     permissions:
       packages: write
+      contents: read
 
     steps:
       - name: Checkout Repository
@@ -24,9 +25,16 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+    
+      - name: Define Image Tag
+        id: image-tag
+        shell: bash
+        env:
+          USER_AND_REPO: ${{ github.repository }}
+        run: echo "tag=ghcr.io/${USER_AND_REPO,,}:latest" >> "$GITHUB_OUTPUT"
 
       - name: Build and Publish Image
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: latest
+          tags: ${{ steps.image-tag.outputs.tag }}
