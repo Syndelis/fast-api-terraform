@@ -112,7 +112,7 @@ resource "aws_ecs_cluster_capacity_providers" "app_cluster" {
   }
 }
 
-resource "aws_ecs_task_definition" "nginx_docker_image" {
+resource "aws_ecs_task_definition" "app_docker_image" {
   family                   = "service"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
@@ -120,8 +120,8 @@ resource "aws_ecs_task_definition" "nginx_docker_image" {
   memory                   = 2048
   container_definitions = jsonencode([
     {
-      name      = "nginx"
-      image     = "docker.io/nginx:latest"
+      name      = "fast-api"
+      image     = "ghcr.io/syndelis/fast-api-terraform:latest"
       cpu       = 1024
       memory    = 2048
       essential = true
@@ -135,10 +135,10 @@ resource "aws_ecs_task_definition" "nginx_docker_image" {
   ])
 }
 
-resource "aws_ecs_service" "run_nginx" {
-  name            = "nginx"
+resource "aws_ecs_service" "app" {
+  name            = "app"
   cluster         = aws_ecs_cluster.app_cluster.id
-  task_definition = aws_ecs_task_definition.nginx_docker_image.arn
+  task_definition = aws_ecs_task_definition.app_docker_image.arn
   desired_count   = 1
 
   network_configuration {
