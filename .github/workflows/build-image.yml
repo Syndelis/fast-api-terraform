@@ -22,4 +22,5 @@ jobs:
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: docker push ghcr.io/${{ github.repository }}:latest
+          USER_AND_REPO: ${{ github.repository }}
+        run: docker push ghcr.io/${USER_AND_REPO,,}:latest
