@@ -16,7 +16,7 @@ ENTRYPOINT [ \
     "uvicorn", \
     "--app-dir", "src/", \
     "--host", "0.0.0.0", \
-    "--port", "8000", \
+    "--port", "80", \
     "--reload", \
     "main:api" \
 ]
