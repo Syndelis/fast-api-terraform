@@ -51,18 +51,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Fill in the new image ID in the Amazon ECS task definition
-        id: task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: task-definition.json
-          container-name: fast-api
-          image: ${{ steps.image-tag.outputs.tag }}
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition my-task-definition-family \
+            --query taskDefinition > task-definition.json
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: app
-          cluster: app_cluster
+          task-definition: task-definition.json
           wait-for-service-stability: true
