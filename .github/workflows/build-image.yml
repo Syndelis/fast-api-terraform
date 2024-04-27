@@ -1,0 +1,25 @@
+on:
+  push:
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+
+    permissions:
+      packages: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Build Docker Image
+        shell: bash
+        env:
+          USER_AND_REPO: ${{ github.repository }}
+        run: docker build -t ${USER_AND_REPO#*/} .
+      
+      - name: Publish Image to GitHub's Registry
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: docker push ghcr.io/${{ github.repository }}:latest
