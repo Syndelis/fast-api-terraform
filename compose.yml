@@ -1,0 +1,15 @@
+version: '3.7'
+
+services:
+  api:
+    build:
+      context: .
+    ports:
+      - 8000:8000
+    volumes:
+      - ./:/api
+    networks:
+      - public
+
+networks:
+  public:
