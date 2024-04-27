@@ -161,3 +161,48 @@ resource "aws_instance" "app_server" {
   }
 }
 
+# DEPLOY PERMISSIONS ######################################
+
+data "aws_caller_identity" "current" {}
+
+locals {
+  iam_task_role_arn      = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${aws_ecs_task_definition.app_docker_image.task_role_arn}"
+  iam_execution_role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${aws_ecs_task_definition.app_docker_image.execution_role_arn}"
+  ecs_service_arn        = "arn:aws:ecs:us-east-1:${data.aws_caller_identity.current.account_id}:service/${aws_ecs_cluster.app_cluster.name}/${aws_ecs_service.app.name}"
+}
+
+data "aws_iam_policy_document" "minimum_required_deploy_permissions" {
+  statement {
+    sid       = "RegisterTaskDefinition"
+    effect    = "Allow"
+    actions   = ["ecs:RegisterTaskDefinition"]
+    resources = ["*"]
+  }
+
+  statement {
+    sid       = "PassRolesInTaskDefinition"
+    effect    = "Allow"
+    actions   = ["iam:PassRole"]
+    resources = [local.iam_task_role_arn, local.iam_execution_role_arn]
+  }
+
+  statement {
+    sid       = "DeployService"
+    effect    = "Allow"
+    actions   = ["ecs:UpdateService", "ecs:DescribeServices"]
+    resources = [local.ecs_service_arn]
+  }
+}
+
+resource "aws_iam_policy" "ecs_deploy_task_definition" {
+  name        = "ecs_deploy_task_definition"
+  description = "Taken from Action: Amazon ECS 'Deploy Task Definition' Action for GitHub Actions"
+  policy      = data.aws_iam_policy_document.minimum_required_deploy_permissions.json
+
+}
+
+resource "aws_iam_user" "github_actions" {
+  name = "github_actions"
+}
+
+###########################################################
