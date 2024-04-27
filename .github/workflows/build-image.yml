@@ -11,16 +11,20 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-      
-      - name: Build Docker Image
+
+      - name: Define Image Tag
+        id: image-tag
         shell: bash
         env:
           USER_AND_REPO: ${{ github.repository }}
-        run: docker build -t ${USER_AND_REPO#*/} .
+        run: echo "tag=${USER_AND_REPO,,}:latest" >> "$GITHUB_OUTPUT"
+
+      - name: Build Docker Image
+        shell: bash
+        run: docker build -t ${{ steps.image-tag.outputs.tag }} .
       
       - name: Publish Image to GitHub's Registry
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          USER_AND_REPO: ${{ github.repository }}
-        run: docker push ghcr.io/${USER_AND_REPO,,}:latest
+        run: docker push ${{ steps.image-tag.outputs.tag }}
