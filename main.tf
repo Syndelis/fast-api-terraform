@@ -65,6 +65,20 @@ resource "aws_route_table_association" "public" {
 
 ###########################################################
 
+# DATABASE ################################################
+
+resource "aws_db_instance" "postgres" {
+  allocated_storage    = 10
+  db_name              = "postgres"
+  engine               = "postgres"
+  engine_version       = "16.3"
+  instance_class       = "db.t3.micro"
+  username             = "postgres"
+  password             = "postgres"
+}
+
+###########################################################
+
 resource "aws_key_pair" "warpgate" {
   key_name   = "warpgate-key"
   public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAVlR5iMTJxzh4Wbijs+YYg/4p0/GKtuynbTU7MH3CVp brenno@warpgate"
@@ -121,10 +135,20 @@ resource "aws_ecs_task_definition" "app_docker_image" {
   container_definitions = jsonencode([
     {
       name      = "fast-api"
-      image     = "ghcr.io/syndelis/fast-api-terraform:latest"
+      image     = "ghcr.io/syndelis/fast-api-terraform:accel"
       cpu       = 1024
       memory    = 2048
       essential = true
+      environment = [
+        {
+          name = "DATABASE_HOST"
+          value = aws_db_instance.postgres.address
+        },
+        {
+          name = "DATABASE_PORT"
+          value = aws_db_instance.postgres.port
+        }
+      ]
       portMappings = [
         {
           containerPort = 80

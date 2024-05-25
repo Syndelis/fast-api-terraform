@@ -2,6 +2,7 @@ on:
   push:
     branches:
       - main
+      - accel
 
     paths:
         - src/*
@@ -35,7 +36,7 @@ jobs:
         shell: bash
         env:
           USER_AND_REPO: ${{ github.repository }}
-        run: echo "tag=ghcr.io/${USER_AND_REPO,,}:latest" >> "$GITHUB_OUTPUT"
+        run: echo "tag=ghcr.io/${USER_AND_REPO,,}:accel" >> "$GITHUB_OUTPUT"
 
       - name: Build and Publish Image
         uses: docker/build-push-action@v5
