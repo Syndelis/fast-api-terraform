@@ -8,8 +8,21 @@ services:
       - 8000:80
     volumes:
       - ./:/api
-    networks:
-      - public
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
 
-networks:
-  public:
+  db:
+    image: postgres:16.3
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
