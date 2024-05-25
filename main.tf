@@ -28,11 +28,25 @@ resource "aws_subnet" "private" {
   availability_zone       = "us-east-1a"
 }
 
+resource "aws_subnet" "private_b" {
+  vpc_id                  = aws_vpc.app_vpc.id
+  cidr_block              = "10.1.3.0/24"
+  map_public_ip_on_launch = false
+  availability_zone       = "us-east-1b"
+}
+
 resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.app_vpc.id
   cidr_block              = "10.1.2.0/24"
   map_public_ip_on_launch = true
   availability_zone       = "us-east-1a"
+}
+
+resource "aws_subnet" "public_b" {
+  vpc_id                  = aws_vpc.app_vpc.id
+  cidr_block              = "10.1.4.0/24"
+  map_public_ip_on_launch = true
+  availability_zone       = "us-east-1b"
 }
 
 resource "aws_internet_gateway" "app_igw" {
@@ -67,6 +81,11 @@ resource "aws_route_table_association" "public" {
 
 # DATABASE ################################################
 
+resource "aws_db_subnet_group" "postgres" {
+  name       = "postgres"
+  subnet_ids = [aws_subnet.public.id, aws_subnet.public_b.id]
+}
+
 resource "aws_db_instance" "postgres" {
   allocated_storage    = 10
   db_name              = "postgres"
@@ -75,6 +94,7 @@ resource "aws_db_instance" "postgres" {
   instance_class       = "db.t3.micro"
   username             = "postgres"
   password             = "postgres"
+  db_subnet_group_name = aws_db_subnet_group.postgres.name
 }
 
 ###########################################################
@@ -146,7 +166,7 @@ resource "aws_ecs_task_definition" "app_docker_image" {
         },
         {
           name = "DATABASE_PORT"
-          value = aws_db_instance.postgres.port
+          value = "${tostring(aws_db_instance.postgres.port)}"
         }
       ]
       portMappings = [
